@@ -1,0 +1,31 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#usrmenu {
+	text-align: right;
+	position: absolute;
+	top: 2%;
+	right: 2%;
+	display: inline-block;
+}
+
+#mainmenu {
+	text-align: left;
+	position: absolute;
+	top: 2%;
+	left: 2%;
+	display: inline-block;
+
+}
+
+#content {
+	position: absolute;
+	top: 15%;
+}
+
