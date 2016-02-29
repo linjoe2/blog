@@ -195,11 +195,25 @@ app.post('/users/login', function(req, res, next) {
 app.get('/users/login', function(req, res, next) {
 	sess = req.session
 	if (sess.email) {
-		console.log('user session requested')
-		res.send(true)
+		res.send(sess.email)
 	} else {
 		res.send(false)
 	}
+})
+
+//logout
+app.get('/logout', function(req, res, next) {
+	sess = req.session
+	req.session.regenerate(function(err) {
+		console.log(sess.email)
+		if (sess.email) {
+			res.send('logout worked')
+		} else {
+			res.send('logout worked')
+		}
+		// cannot access session here
+	})
+
 })
 
 //register
@@ -315,6 +329,93 @@ app.get('/post/', function(req, res, next) {
 	});
 });
 
+//single message
+app.get('/post/:name', function(req, res, next) {
+
+	req.params.name
+	sess = req.session;
+	user.findAll().then(function(users) {
+		var data = users.map(function(post) {
+			return {
+				id: post.dataValues.id,
+				username: post.dataValues.username,
+				password: post.dataValues.password,
+				email: post.dataValues.email
+			};
+		});
+		if (sess.email) {
+			var check = 0
+			for (var i = 0; i <= data.length - 1; i++) {
+				if (sess.email === data[i].email) {
+					res.render('message_single', {
+						title: 'hello ' + sess.email
+					})
+					var check = 1
+				} else {
+					if (i + 1 === data.length && check === 0) {
+						res.render('message', {
+							title: 'incorrect user'
+						})
+						console.log('incorrect user bounced')
+					}
+				}
+			}
+		} else {
+			res.render('error', {
+				title: 'user not logged in'
+			})
+			console.log('unknown user bounced')
+		};
+	});
+});
+// single message read
+app.get('/smessage/:name', function(req, res, next) {
+	var param = req.params.name;
+	sess = req.session;
+	var messagetitle = req.body.messagetitle
+	var messagebody = req.body.message
+	console.log('new post: ' + messagetitle)
+	console.log('------------')
+
+	user.findAll().then(function(users) {
+		var usr = users.map(function(user) {
+			return {
+				id: user.dataValues.id,
+				usr: user.dataValues.username,
+				email: user.dataValues.email,
+			};
+		});
+		message.findAll().then(function(messages) {
+			var msg = messages.map(function(message) {
+				return {
+					id: message.dataValues.id,
+					title: message.dataValues.messaget,
+					msg: message.dataValues.message,
+					usr: message.dataValues.userid,
+					cmtid: message.dataValues.comments
+				};
+			});
+			res.writeHead(200, {
+				'Content-Type': 'text/plain'
+			})
+			for (var i = 0; i <= msg.length - 1; i++) {
+				for (var b = usr.length - 1; b >= 0; b--) {
+					if (usr[b].id === msg[i].usr) {
+						var username = usr[b].usr
+						var email = usr[b].email
+						console.log(username)
+					}
+				}
+				console.log(msg[i].id + ' - ' + param)
+				if (msg[i].id == param) {
+					res.write('<div class="message"><h2>' + msg[i].title + '</h2></a><h4>' + username + '</h4><br><p>' + msg[i].msg + '</p>');
+				}
+			};
+			res.end();
+		});
+	});
+});
+
 
 //message in
 app.post('/message', function(req, res, next) {
@@ -378,7 +479,6 @@ app.get('/message', function(req, res, next) {
 			res.writeHead(200, {
 				'Content-Type': 'text/plain'
 			})
-
 			for (var i = 0; i <= msg.length - 1; i++) {
 				for (var b = usr.length - 1; b >= 0; b--) {
 					if (usr[b].id === msg[i].usr) {
@@ -386,7 +486,7 @@ app.get('/message', function(req, res, next) {
 						console.log(username)
 					}
 				};
-				res.write('<h2>' + msg[i].title + '</h2><h3>' + username + '</h3><br>' + msg[i].msg);
+				res.write('<a href="/post/' + msg[i].id + '"><div class="message"><h2>' + msg[i].title + '</h2></a><h4>' + username + '</h4><br><p>' + msg[i].msg + '</p></div>');
 			};
 			res.end();
 		});
@@ -394,7 +494,7 @@ app.get('/message', function(req, res, next) {
 	// res.send('test')
 });
 
-//message from user
+//messages made by user
 app.get('/message-usr', function(req, res, next) {
 	sess = req.session;
 	var messagetitle = req.body.messagetitle
@@ -426,14 +526,14 @@ app.get('/message-usr', function(req, res, next) {
 
 			for (var i = 0; i <= msg.length - 1; i++) {
 				for (var b = usr.length - 1; b >= 0; b--) {
-					if(usr[b].id === msg[i].usr) {
+					if (usr[b].id === msg[i].usr) {
 						var username = usr[b].usr
 						var email = usr[b].email
 						console.log(username)
 					}
 				};
 				if (email === sess.email) {
-					res.write('<h2>' + msg[i].title + '</h2><h3>' + username + '</h3><br>' + msg[i].msg);
+					res.write('<a href="/post/' + msg[i].id + '"><div class="message"><h2>' + msg[i].title + '</h2></a><h4>' + username + '</h4><br><p>' + msg[i].msg + '</p></div>');
 				}
 
 			};
@@ -445,11 +545,94 @@ app.get('/message-usr', function(req, res, next) {
 
 
 
-//comment
+//comment in
+app.post('/comment',bodyParser.urlencoded({extended: true}), function(req, res, next) {
+	sess = req.session;
+	var comment = req.body.comment
+	var msgid = req.body.path
+	console.log('new comment: ' + comment)
+	console.log('------------')
 
+	user.findAll().then(function(users) {
+		var data = users.map(function(user) {
+			return {
+				id: user.dataValues.id,
+				email: user.dataValues.email,
+			};
+		});
+		console.log(data)
+		for (var i = 0; i <= data.length - 1; i++) {
+			console.log(data[i].email)
+			if (data[i].email === sess.email)
+				comments.create({
+					messageid: msgid,
+					userid: data[i].id,
+					comment: comment,
+				})
+		};
+
+	});
+
+	res.send('done');
+})
+
+
+//comment read
+app.get('/comment/:name', function(req, res, next) {
+	var param = req.params.name;
+	sess = req.session;
+	var messagetitle = req.body.messagetitle
+	var messagebody = req.body.message
+	console.log('new post: ' + messagetitle)
+	console.log('------------')
+
+	user.findAll().then(function(users) {
+		var usr = users.map(function(user) {
+			return {
+				id: user.dataValues.id,
+				usr: user.dataValues.username,
+				email: user.dataValues.email,
+			};
+		});
+		comments.findAll().then(function(comments) {
+			var com = comments.map(function(comment) {
+				return {
+					id: comment.dataValues.userid,
+					userid: comment.dataValues.userid,
+					messageid: comment.dataValues.messageid,
+					comment: comment.dataValues.comment,
+				};
+			});
+			console.log(com)
+			res.writeHead(200, {
+				'Content-Type': 'text/plain'
+			})
+
+			for (var i = 0; i <= com.length - 1; i++) {
+				for (var b = usr.length - 1; b >= 0; b--) {
+					if (usr[b].id == com[i].userid) {
+						var username = usr[b].usr
+						var email = usr[b].email
+						console.log(username)
+					}
+				};
+				console.log(username)
+				if (com[i].messageid === param) {
+					res.write('<div class="comment"><h4>'+ com[i].comment + '</h4><br><p> by: ' + username + '</p></div>');
+				}
+
+			};
+			res.end();
+		});
+	});
+	// res.send('test')
+});
+
+//------------------------------------------------
 
 sequelize.sync().then(function() {
 	app.listen(3000, function() {
 		console.log('Example app listening on port 3000!');
 	});
 })
+
