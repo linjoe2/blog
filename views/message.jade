@@ -3,11 +3,11 @@ extends layout
 block content
   h1= title
 
-  div(class='allmsg')
+  div#allmsg
       script.
           function addlist() {
             $.get("/message", function (response) { 
-              $('.allmsg').append("<p>" + response + "</p>");
+              $('#allmsg').append("<p>" + response + "</p>");
           });
           }
           addlist()

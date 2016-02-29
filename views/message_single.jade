@@ -1,0 +1,41 @@
+extends layout
+
+block content
+  h1= title
+
+  div#allmsg
+  div#comments
+  br
+  br
+  div#form-group 
+    form 
+     input#comment(type='text', class='comment', name='comment', placeholder='comment here')
+     input#button(type="button" value="Submit")
+
+
+
+  script.
+        $('#button').click(function() {
+           var data = { 
+           path: path.slice(6),
+           comment: $("#comment").val()
+           };
+           console.log('test')
+           $.post('/comment', data, function(res,req,next) {
+           if(res=='done') {
+            location.reload();
+           }
+           })
+        })
+
+        var path = window.location.pathname
+        function addlist() {
+          $.get("/smessage/" + path.slice(6) , function (response) { 
+          $('#allmsg').append("<p>" + response + "</p>");
+          });
+          $.get("/comment/" + path.slice(6) , function (response) { 
+          $('#comments').append("<p>" + response + "</p>");
+
+          });
+          }
+        addlist()
