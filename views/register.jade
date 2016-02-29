@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1= title
+  div#input-group
+   div#form-group 
+   form(action='/users', method='post') 
+     input(class="form-control" type='text', name='username', placeholder='username')
+     br
+     input(class="form-control" type='text', name='email', placeholder='Email adress')
+     br
+     input(class="form-control" type='password', name='password', placeholder='password')
+     br
+     button(class='btn btn-default' type='submit') submit

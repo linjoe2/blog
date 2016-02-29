@@ -1,0 +1,36 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(type='stylesheet', href='http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css')
+    script(src='http://code.jquery.com/jquery-1.10.2.js')
+    script(type='text/javascript', src='http://code.jquery.com/ui/1.11.4/jquery-ui.js')
+    link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css", integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7", crossorigin="anonymous")
+  body
+   
+   div#mainmenu
+     ul
+      li: a(href='/') home
+      li: a(href='/post/new') Add message
+      li: a(href='/post') read all messages
+
+   div#usrmenu
+    div#form-group 
+    form(action='/users/login', method='post')
+      input(type='text', name='username', id='username', placeholder='username')
+      input(type='password', name='password', id='password', placeholder='password')
+      br
+      button(type='submit' id='submit') submit
+      a(class='button', href='http://localhost:3000/users/new') register
+
+    .script
+        $(document).ready(function(){
+        console.log('test')
+        })
+  
+
+
+
+ div#content
+     block content
