@@ -31,13 +31,16 @@ html
 
  script.
        $(document).ready(
-        $.get("/users/login", function(data){        
-            if(data===false)           
-            {
+        $.get("/users/login", function(data){ 
+         console.log(data)       
+            if(!data.mail){
+             console.log('false')
                 }else{
-                 $( "div#loginform" ).replaceWith("<p>"+ data +"</p><a href='/logout'>Log out</a><br><a href='*'>My Messages</a>" );
+                 console.log('true')
+                  $( "div#loginform" ).replaceWith("<p>"+ data.mail +"</p><a href='/logout'>Log out</a><br><a href='/post/'"+ data.id +">My Messages</a>" );
                 }
               })
           )
+
 
 
