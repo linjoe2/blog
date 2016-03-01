@@ -194,26 +194,45 @@ app.post('/users/login', function(req, res, next) {
 //user check
 app.get('/users/login', function(req, res, next) {
 	sess = req.session
-	if (sess.email) {
-		res.send(sess.email)
-	} else {
-		res.send(false)
-	}
+	user.findAll().then(function(users) {
+		var user = users.map(function(post) {
+			return {
+				id: post.dataValues.id,
+				username: post.dataValues.username,
+				password: post.dataValues.password,
+				email: post.dataValues.email
+			};
+		});
+		
+		if (sess.email) {
+			for (var i = 0; i <= users.length - 1; i++) {
+				if (user[i].email = sess.email) {
+					var data = {
+						id: user[i].id,
+						mail: sess.email
+					}
+					console.log('data= ' + data)
+				};
+			};
+
+
+			console.log('data= ' + data)
+			res.send(data)
+		} else {
+			res.send()
+		}
+	})
 })
 
 //logout
 app.get('/logout', function(req, res, next) {
 	sess = req.session
 	req.session.regenerate(function(err) {
-		console.log(sess.email)
-		if (sess.email) {
-			res.send('logout worked')
-		} else {
-			res.send('logout worked')
-		}
+		res.render('error', {
+							title: 'Log out succesful'
+						})
 		// cannot access session here
 	})
-
 })
 
 //register
@@ -546,7 +565,9 @@ app.get('/message-usr', function(req, res, next) {
 
 
 //comment in
-app.post('/comment',bodyParser.urlencoded({extended: true}), function(req, res, next) {
+app.post('/comment', bodyParser.urlencoded({
+	extended: true
+}), function(req, res, next) {
 	sess = req.session;
 	var comment = req.body.comment
 	var msgid = req.body.path
@@ -618,7 +639,7 @@ app.get('/comment/:name', function(req, res, next) {
 				};
 				console.log(username)
 				if (com[i].messageid === param) {
-					res.write('<div class="comment"><h4>'+ com[i].comment + '</h4><br><p> by: ' + username + '</p></div>');
+					res.write('<div class="comment"><h4>' + com[i].comment + '</h4><br><p> by: ' + username + '</p></div>');
 				}
 
 			};
@@ -635,4 +656,3 @@ sequelize.sync().then(function() {
 		console.log('Example app listening on port 3000!');
 	});
 })
-
