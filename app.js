@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var pg = require('pg')
 var Sequelize = require('sequelize');
 var router = express.Router();
+var bcrypt = require('bcrypt');
 
 
 //sessions
@@ -152,24 +153,25 @@ app.post('/users/login', function(req, res, next) {
 			};
 		});
 		var chck = 0
-
 		for (var i = 0; i <= data.length - 1; i++) {
 			if (username === data[i].username) {
 				console.log('user signing in: ' + data[i].username)
-				if (password === data[i].password) {
-					console.log('correct password')
-					sess.email = data[i].email
-					console.log('session created ' + sess.email);
-					res.redirect('/users/' + data[i].id)
-						// res.end('/post/' + data[i].id)
-					var chck = 1
-				} else {
-					if (chck === 0 && data.length - 1 === i) {
-						res.render('error', {
-							title: 'incorrect password'
-						})
+				
+					if (bcrypt.compareSync(password, data[i].password)) {
+						console.log('correct password')
+						sess.email = data[i].email
+						console.log('session created ' + sess.email);
+						res.redirect('/users/' + data[i].id)
+							// res.end('/post/' + data[i].id)
+						var chck = 1
+					} else {
+						if (chck === 0 && data.length - 1 === i) {
+							res.render('error', {
+								title: 'incorrect password'
+							})
+						}
 					}
-				}
+				
 			} else {
 				if (chck === 0 && data.length - 1 === i) {
 					res.render('error', {
@@ -203,7 +205,7 @@ app.get('/users/login', function(req, res, next) {
 				email: post.dataValues.email
 			};
 		});
-		
+
 		if (sess.email) {
 			for (var i = 0; i <= users.length - 1; i++) {
 				if (user[i].email = sess.email) {
@@ -229,9 +231,9 @@ app.get('/logout', function(req, res, next) {
 	sess = req.session
 	req.session.regenerate(function(err) {
 		res.render('error', {
-							title: 'Log out succesful'
-						})
-		// cannot access session here
+				title: 'Log out succesful'
+			})
+			// cannot access session here
 	})
 })
 
@@ -245,19 +247,20 @@ app.post('/users', function(req, res, next) {
 	console.log('new user!')
 	console.log('usr: ' + username + ' pwd: ' + password + ' email: ' + email)
 	var username = sess.username
-	user.create({
-		username: req.body.username,
-		password: req.body.password,
-		email: req.body.email
-	});
-
+	bcrypt.hash(password, 8, function(err, hash) {
+		user.create({
+			username: req.body.username,
+			password: hash,
+			email: req.body.email
+		});
+	})
 
 	sess.email = req.body.email
 	if (sess.email) {
 		console.log('session created')
 	}
 	console.log('------------')
-	res.redirect('/users/' + data[i].id)
+	res.redirect('/post/')
 	res.send()
 })
 
