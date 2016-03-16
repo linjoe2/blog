@@ -156,22 +156,22 @@ app.post('/users/login', function(req, res, next) {
 		for (var i = 0; i <= data.length - 1; i++) {
 			if (username === data[i].username) {
 				console.log('user signing in: ' + data[i].username)
-				
-					if (bcrypt.compareSync(password, data[i].password)) {
-						console.log('correct password')
-						sess.email = data[i].email
-						console.log('session created ' + sess.email);
-						res.redirect('/users/' + data[i].id)
-							// res.end('/post/' + data[i].id)
-						var chck = 1
-					} else {
-						if (chck === 0 && data.length - 1 === i) {
-							res.render('error', {
-								title: 'incorrect password'
-							})
-						}
+
+				if (bcrypt.compareSync(password, data[i].password)) {
+					console.log('correct password')
+					sess.email = data[i].email
+					console.log('session created ' + sess.email);
+					res.redirect('/users/' + data[i].id)
+						// res.end('/post/' + data[i].id)
+					var chck = 1
+				} else {
+					if (chck === 0 && data.length - 1 === i) {
+						res.render('error', {
+							title: 'incorrect password'
+						})
 					}
-				
+				}
+
 			} else {
 				if (chck === 0 && data.length - 1 === i) {
 					res.render('error', {
@@ -205,7 +205,6 @@ app.get('/users/login', function(req, res, next) {
 				email: post.dataValues.email
 			};
 		});
-
 		if (sess.email) {
 			for (var i = 0; i <= users.length - 1; i++) {
 				if (user[i].email = sess.email) {
@@ -213,12 +212,9 @@ app.get('/users/login', function(req, res, next) {
 						id: user[i].id,
 						mail: sess.email
 					}
-					console.log('data= ' + data)
+
 				};
 			};
-
-
-			console.log('data= ' + data)
 			res.send(data)
 		} else {
 			res.send()
@@ -253,15 +249,15 @@ app.post('/users', function(req, res, next) {
 			password: hash,
 			email: req.body.email
 		});
+		sess.email = req.body.email
+		if (sess.email) {
+			console.log('register: ' + sess.email)
+			console.log('session created')
+			res.redirect('/post')
+		}
 	})
 
-	sess.email = req.body.email
-	if (sess.email) {
-		console.log('session created')
-	}
 	console.log('------------')
-	res.redirect('/post/')
-	res.send()
 })
 
 //---------------------
@@ -314,7 +310,7 @@ app.get('/users/:name', function(req, res, next) {
 	});
 });
 // all messages
-app.get('/post/', function(req, res, next) {
+app.get('/post', function(req, res, next) {
 	sess = req.session;
 	user.findAll().then(function(users) {
 		var data = users.map(function(post) {
@@ -326,16 +322,18 @@ app.get('/post/', function(req, res, next) {
 			};
 		});
 		if (sess.email) {
+			console.log('post: ' + sess.email)
 			var check = 0
 			for (var i = 0; i <= data.length - 1; i++) {
+				console.log('dbmail= ' + data[i].email)
 				if (sess.email === data[i].email) {
 					res.render('message', {
 						title: 'hello ' + sess.email
 					})
 					var check = 1
 				} else {
-					if (i + 1 === data.length && check === 0) {
-						res.render('message', {
+					if (i === data.length - 1 && check === 0) {
+						res.render('error', {
 							title: 'incorrect user'
 						})
 						console.log('incorrect user bounced')
@@ -439,7 +437,7 @@ app.get('/smessage/:name', function(req, res, next) {
 });
 
 
-//message in
+//message to database
 app.post('/message', function(req, res, next) {
 	sess = req.session;
 	var messagetitle = req.body.messagetitle
@@ -457,19 +455,20 @@ app.post('/message', function(req, res, next) {
 		console.log(data)
 		for (var i = 0; i <= data.length - 1; i++) {
 			console.log(data[i].email)
-			if (data[i].email === sess.email)
+			if (data[i].email === sess.email) {
 				message.create({
 					userid: data[i].id,
 					messaget: messagetitle,
 					message: messagebody,
+				}).then(function(message) {
+					console.log('id: ' + message.id)
+					res.render('/post/' + message.id, {
+						title: 'Blog'
+					})
 				})
-		};
-
-	});
-
-	res.render('index', {
-		title: 'Blog'
-	});
+			}
+		}
+	})
 })
 
 //message out
