@@ -524,6 +524,7 @@ app.post('/message', function(req, res, next) {
 	})
 })
 
+
 //message out
 app.get('/message', function(req, res, next) {
 	sess = req.session;
