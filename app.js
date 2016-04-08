@@ -6,6 +6,29 @@ var pg = require('pg')
 var Sequelize = require('sequelize');
 var router = express.Router();
 var bcrypt = require('bcrypt');
+var sass = require('node-sass'); // We're adding the node-sass module
+var sassMiddleware = require('node-sass-middleware')
+var path = require('path'); // Also loading the path module
+
+
+
+// adding the sass middleware
+app.use(
+	sassMiddleware({
+		src: __dirname + '/sass',
+		dest: __dirname + '/public',
+		debug: true,
+	})
+);
+
+// The static middleware must come after the sass middleware
+app.use(express.static(path.join(__dirname, 'public')));
+
+
+
+//view engine + static files
+app.set('views', './views');
+app.set('view engine', 'jade');
 
 
 //sessions
@@ -24,10 +47,6 @@ app.use(session({
 
 var sess;
 
-//view engine + static files
-app.set('views', './views');
-app.set('view engine', 'jade');
-app.use(express.static('public'));
 
 //bodyparser
 app.use(bodyParser.urlencoded({
@@ -134,7 +153,7 @@ app.get('/post/new', function(req, res, next) {
 module.exports = router;
 
 
-//---------------------
+//----------users-----------
 
 //login
 app.post('/users/login', function(req, res, next) {
@@ -260,7 +279,41 @@ app.post('/users', function(req, res, next) {
 	console.log('------------')
 })
 
-//---------------------
+//---------pages------------
+
+app.get('/', function(req, res, next) {
+	res.render('index', {
+		title: 'Blog'
+	});
+});
+
+app.get('/users/new', function(req, res, next) {
+	sess = req.session
+	if (sess.email) {
+		res.render('error', {
+			title: 'user already loged in: ' + sess.email
+		})
+	} else {
+		console.log('user session requested')
+		res.render('register', {
+			title: 'Register'
+		});
+	}
+});
+
+app.get('/post/new', function(req, res, next) {
+	sess = req.session
+	if (sess.email) {
+		console.log('user session requested')
+		res.render('newmessage', {
+			title: ' New messages'
+		});
+	} else {
+		res.render('error', {
+			title: 'user login failed'
+		})
+	}
+});
 
 //loged in homepage
 app.get('/users/:name', function(req, res, next) {
@@ -564,8 +617,6 @@ app.get('/message-usr', function(req, res, next) {
 	// res.send('test')
 });
 
-
-
 //comment in
 app.post('/comment', bodyParser.urlencoded({
 	extended: true
@@ -598,7 +649,6 @@ app.post('/comment', bodyParser.urlencoded({
 
 	res.send('done');
 })
-
 
 //comment read
 app.get('/comment/:name', function(req, res, next) {
