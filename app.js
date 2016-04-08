@@ -515,9 +515,9 @@ app.post('/message', function(req, res, next) {
 					message: messagebody,
 				}).then(function(message) {
 					console.log('id: ' + message.id)
-					res.render('/post/' + message.id, {
+					res.redirect('/post/' + message.id, {
 						title: 'Blog'
-					})
+					},301)
 				})
 			}
 		}
